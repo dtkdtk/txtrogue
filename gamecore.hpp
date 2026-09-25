@@ -2,6 +2,7 @@
 #include <vector>
 #include <format>
 #include <stdexcept>
+#include <initializer_list>
 #include "u_dynspan.hpp"
 #include "u_mapspan.hpp"
 #include "u_grid.hpp"
@@ -23,6 +24,7 @@ struct NodeSource {
 };
 
 inline std::vector<NodeSource> KnownNodeKinds = {};
+inline std::vector<Tile> TileTemplates = {};
 
 
 
@@ -56,10 +58,16 @@ private:
 class Tile {
 
 public:
+	Tile() = default;
+	Tile(Cell cell_, std::initializer_list<NodeRef> nodes_,
+		std::initializer_list<int> attrs_,
+		std::initializer_list<> props_
+	) : cell(cell_), nodes(nodes_), attrs(attrs_), props(props_) {}
+
 	Cell cell{};
 	DynSpan<NodeRef> nodes{};
-	DynSpan<Key8> attrs{};
-	MapSpan<Key8, PropertyValue> properties{};
+	DynSpan<int> attrs{};
+	MapSpan<int, PropertyValue> properties{};
 };
 
 
