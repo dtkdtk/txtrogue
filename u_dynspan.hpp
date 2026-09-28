@@ -20,6 +20,12 @@ public:
     using iterator = T *;
     using const_iterator = const T *;
 
+private:
+    std::unique_ptr<T[]> _data;
+    size_type _size = 0;
+
+public:
+
     DynSpan() noexcept = default;
 
     explicit DynSpan(size_type n)
@@ -117,7 +123,4 @@ private:
         _size = new_size;
         return true;
     }
-
-    std::unique_ptr<T[]> _data;
-    size_type _size = 0;
 };

@@ -1,34 +1,38 @@
+#pragma once
 #include <string>
 #include <vector>
 #include <format>
 #include <stdexcept>
 #include <initializer_list>
+#include <utility>
 #include "u_dynspan.hpp"
 #include "u_mapspan.hpp"
 #include "u_grid.hpp"
 #include "u_basetypes.hpp"
-#include "u_console.hpp"
 
 struct NodeSource;
 class NodeRef;
 class Tile;
 using NodeExecFn = void(*)(Tile &);
 using PropertyValue = uint64_t;
-
+using KvProperty = std::pair<int, PropertyValue>;
+std::vector<NodeSource> & getKnownNodeKinds();
+std::vector<Tile> & getTileTemplates();
 
 
 struct NodeSource {
+	const NodeExecFn executor;
+
 	NodeSource(NodeExecFn e)
 		: executor{ e } {}
-	const NodeExecFn executor;
 };
-
-inline std::vector<NodeSource> KnownNodeKinds = {};
-inline std::vector<Tile> TileTemplates = {};
 
 
 
 class NodeRef {
+
+private:
+	int _kind = 0;
 
 public:
 	NodeRef(int kind)
@@ -39,18 +43,16 @@ public:
 		return _kind;
 	}
 	NodeSource & get_source() const {
-		if (_kind <= 0 || _kind > KnownNodeKinds.size()) {
+		auto & knk = getKnownNodeKinds();
+		if (_kind <= 0 || _kind > knk.size()) {
 			throw std::runtime_error(std::format("Invalid node kind: {}", _kind));
 		}
-		return KnownNodeKinds[_kind - 1];
+		return knk[_kind - 1];
 	}
 	void execute(Tile & tile) const {
 		NodeSource & s = get_source();
 		s.executor(tile);
 	}
-
-private:
-	int _kind = 0;
 };
 
 
@@ -58,23 +60,27 @@ private:
 class Tile {
 
 public:
-	Tile() = default;
-	Tile(Cell cell_, std::initializer_list<NodeRef> nodes_,
-		std::initializer_list<int> attrs_,
-		std::initializer_list<> props_
-	) : cell(cell_), nodes(nodes_), attrs(attrs_), props(props_) {}
-
 	Cell cell{};
 	DynSpan<NodeRef> nodes{};
 	DynSpan<int> attrs{};
-	MapSpan<int, PropertyValue> properties{};
+	MapSpan<int, PropertyValue> props{};
+
+	Tile() = default;
+	Tile(Cell cell_,
+		std::initializer_list<NodeRef> nodes_,
+		std::initializer_list<int> attrs_,
+		std::initializer_list<KvProperty> props_
+	) : cell(cell_), nodes(nodes_), attrs(attrs_), props(props_) {}
 };
 
 
 
 class GameMap {
+
+private:
 	using uint = unsigned int;
 	using Grid = ::Grid<Tile, uint>;
+	Grid _data;
 
 public:
 	GameMap(uint size_X, uint size_Y)
@@ -103,27 +109,7 @@ public:
 		}
 	}
 
-	void draw_into(
-		Console & console,
-		size_t origin_x = 0,
-		size_t origin_y = 0
-	) const {
-		const size_t cw = console.width();
-		const size_t ch = console.height();
-		const size_t mw = _data.width();
-		const size_t mh = _data.height();
-
-		for (size_t y = 0; y < mh; ++y) {
-			const size_t ty = origin_y + y;
-			if (ty >= ch) break;
-			for (size_t x = 0; x < mw; ++x) {
-				const size_t tx = origin_x + x;
-				if (tx >= cw) break;
-				console.at(tx, ty) = _data.at(static_cast<uint>(x),
-					static_cast<uint>(y)).cell;
-			}
-		}
-	}
+	//TODO: draw into buffer
 
 	std::wstring draw_map() const {
 		std::wstring result{};
@@ -136,7 +122,16 @@ public:
 		}
 		return result;
 	}
-
-private:
-	Grid _data;
 };
+
+
+
+
+std::vector<NodeSource> & getKnownNodeKinds() {
+	static std::vector<NodeSource> _v{};
+	return _v;
+}
+std::vector<Tile> & getTileTemplates() {
+	static std::vector<Tile> _v{};
+	return _v;
+}

@@ -1,15 +1,14 @@
 #pragma once
 
 enum class TileID : int {
-	NULL,
-	VOID,
+	NONE,
 	WALL,
 	DOOR,
 	WATER,
 };
 
 enum class NodeID : int {
-	NULL,
+	NONE,
 	ACTION,
 	ANIMATION
 };
