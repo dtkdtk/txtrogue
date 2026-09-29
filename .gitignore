@@ -2,6 +2,9 @@
 /x64/
 /txtrogue/x64
 
+/program
+/sympalette
+
 # Prerequisites
 *.d
 

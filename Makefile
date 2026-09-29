@@ -5,6 +5,9 @@ all: program
 program: $(SRCS)
 	clang++ $(SRCS) -o program -std=c++20
 
+sympalette:
+	clang++ tools/sympalette.cpp -o sympalette -std=c++20
+
 clean:
 	rm -f program
 
