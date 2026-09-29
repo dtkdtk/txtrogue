@@ -2,9 +2,11 @@
 
 void res_init_tiles() {
 	auto & tt = getTileTemplates();
-	tt.push_back(
-		Tile(Cell(L' '), {}, {}, {}), //Void
-		Tile(Cell(L'8'), {}, {}, {})
-	);
+	Tile tiles[] = {
+		Tile(Cell(L' '), {}, {}, {{}}), //Void
+		Tile(Cell(L'8'), {}, {}, {{}})
+	};
+	for (const Tile & t : tiles)
+		tt.push_back(t);
 }
 

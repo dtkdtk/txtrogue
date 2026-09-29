@@ -15,9 +15,8 @@ class NodeRef;
 class Tile;
 using NodeExecFn = void(*)(Tile &);
 using PropertyValue = uint64_t;
-using KvProperty = std::pair<int, PropertyValue>;
-std::vector<NodeSource> & getKnownNodeKinds();
-std::vector<Tile> & getTileTemplates();
+inline std::vector<NodeSource> & getKnownNodeKinds();
+inline std::vector<Tile> & getTileTemplates();
 
 
 struct NodeSource {
@@ -60,6 +59,8 @@ public:
 class Tile {
 
 public:
+	using KvProperty = MapSpan<int, PropertyValue>::Entry;
+
 	Cell cell{};
 	DynSpan<NodeRef> nodes{};
 	DynSpan<int> attrs{};
@@ -127,11 +128,11 @@ public:
 
 
 
-std::vector<NodeSource> & getKnownNodeKinds() {
+inline std::vector<NodeSource> & getKnownNodeKinds() {
 	static std::vector<NodeSource> _v{};
 	return _v;
 }
-std::vector<Tile> & getTileTemplates() {
+inline std::vector<Tile> & getTileTemplates() {
 	static std::vector<Tile> _v{};
 	return _v;
 }
