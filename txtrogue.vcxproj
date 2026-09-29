@@ -129,14 +129,12 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="res_init_nodes.cc" />
     <ClCompile Include="res_init_tiles.cc" />
-    <ClCompile Include="u_console_win32.hpp" />
     <ClCompile Include="u_dynspan.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="res_init_nodes.hh" />
     <ClInclude Include="res_init_tiles.hh" />
     <ClInclude Include="u_basetypes.hpp" />
-    <ClInclude Include="u_console.hpp" />
     <ClInclude Include="u_grid.hpp" />
     <ClInclude Include="u_inputevent.hpp" />
     <ClInclude Include="u_mapspan.hpp" />

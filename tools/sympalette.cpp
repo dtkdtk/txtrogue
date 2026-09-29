@@ -14,7 +14,6 @@ int count_digits(int n) {
 int main() {
 	int from, to, width;
 	char w_mode = 'N';
-	char col_i_buf [16];
 	cout << "Enable wide (wchar_t) mode? [y/n]: ";
 	cin >> w_mode;
 	cout << endl;
