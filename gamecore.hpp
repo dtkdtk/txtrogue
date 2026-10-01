@@ -5,6 +5,9 @@
 #include <stdexcept>
 #include <initializer_list>
 #include <utility>
+#include <optional>
+#include <memory>
+#include <map>
 #include "u_dynspan.hpp"
 #include "u_mapspan.hpp"
 #include "u_grid.hpp"
@@ -13,8 +16,10 @@
 struct NodeSource;
 class NodeRef;
 class Tile;
+class GameMap;
 using NodeExecFn = void(*)(Tile &);
 using PropertyValue = uint64_t;
+
 inline std::vector<NodeSource> & getKnownNodeKinds();
 inline std::vector<Tile> & getTileTemplates();
 
@@ -72,6 +77,14 @@ public:
 		std::initializer_list<int> attrs_,
 		std::initializer_list<KvProperty> props_
 	) : cell(cell_), nodes(nodes_), attrs(attrs_), props(props_) {}
+};
+
+
+
+enum class GameMapLayer {
+	FLOOR = -1,
+	WALLS = 0,
+	OBJECTS = 1
 };
 
 
@@ -136,3 +149,37 @@ inline std::vector<Tile> & getTileTemplates() {
 	static std::vector<Tile> _v{};
 	return _v;
 }
+
+static inline std::map<int, std::unique_ptr<GameMap>> _GameMapLayers{};
+//nullable
+inline GameMap * getGameMap(int layer) {
+	if (!_GameMapLayers.contains(layer))
+		return nullptr;
+	return _GameMapLayers[layer].get();
+
+}
+inline void setMapLayer(int layer, std::unique_ptr<GameMap> map) {
+	_GameMapLayers[layer] = std::move(map);
+}
+
+
+
+class EntityState : public Tile {
+
+public:
+	int getHealth() const {
+		//TODO, get from prop
+	}
+	bool isAlive() const {
+		//TODO
+		return true;
+	}
+};
+
+
+
+class Player : public Entity {
+
+public:
+
+};
