@@ -12,13 +12,29 @@
 #include "u_mapspan.hpp"
 #include "u_grid.hpp"
 #include "u_basetypes.hpp"
+#include "obj_IDs.hpp"
 
 struct NodeSource;
 class NodeRef;
 class Tile;
 class GameMap;
+
 using NodeExecFn = void(*)(Tile &);
 using PropertyValue = uint64_t;
+
+/*
+	Relative Coordinates
+```
+	      -3
+	      -2
+	      -
+  -3 -2 - A + +2 +3
+		  +
+		  +2
+		  +3
+```
+*/
+using RelCoord = Coord<short>;
 
 inline std::vector<NodeSource> & getKnownNodeKinds();
 inline std::vector<Tile> & getTileTemplates();
@@ -67,21 +83,40 @@ public:
 	using KvProperty = MapSpan<int, PropertyValue>::Entry;
 
 	Cell cell{};
+	short mapLayer; //needed to see other layer tiles
 	DynSpan<NodeRef> nodes{};
 	DynSpan<int> attrs{};
 	MapSpan<int, PropertyValue> props{};
 
 	Tile() = default;
 	Tile(Cell cell_,
+		short mapLayer_,
 		std::initializer_list<NodeRef> nodes_,
 		std::initializer_list<int> attrs_,
 		std::initializer_list<KvProperty> props_
-	) : cell(cell_), nodes(nodes_), attrs(attrs_), props(props_) {}
+	) : cell(cell_), mapLayer(mapLayer_), nodes(nodes_), attrs(attrs_), props(props_) {}
+
+	/* returns `false` if reached non-void empty or the map border */
+	bool tryMove(RelCoord dest) {
+		//TODO
+		return true;
+	}
+
+	/* returns `false` only if reached the map border */
+	bool forceMove(RelCoord dest) {
+		//TODO
+		return true;
+	}
+
+	std::span<NodeRef> getCategoryNodes(NodeCategory cat) const {
+		//1. calculate nodes count (to get span size)
+		//2. allocate span & fill it with nodes
+	}
 };
 
 
 
-enum class GameMapLayer {
+enum MapLayer : short {
 	FLOOR = -1,
 	WALLS = 0,
 	OBJECTS = 1
@@ -150,15 +185,15 @@ inline std::vector<Tile> & getTileTemplates() {
 	return _v;
 }
 
-static inline std::map<int, std::unique_ptr<GameMap>> _GameMapLayers{};
+static inline std::map<short, std::unique_ptr<GameMap>> _GameMapLayers{};
 //nullable
-inline GameMap * getGameMap(int layer) {
+inline GameMap * getGameMap(short layer) {
 	if (!_GameMapLayers.contains(layer))
 		return nullptr;
 	return _GameMapLayers[layer].get();
 
 }
-inline void setMapLayer(int layer, std::unique_ptr<GameMap> map) {
+inline void setMapLayer(short layer, std::unique_ptr<GameMap> map) {
 	_GameMapLayers[layer] = std::move(map);
 }
 
@@ -174,11 +209,22 @@ public:
 		//TODO
 		return true;
 	}
+	bool selfDamageWall(RelCoord XY) { //layer 0
+		//TODO, + check range & check ability
+		return true;
+	}
+	bool selfDamageObject(RelCoord XY) {
+		return selfDamageMapLayer(XY, MapLayer::OBJECTS);
+	}
+	bool selfDamageMapLayer(RelCoord XY, int layer) {
+		//TODO, + check range & check ability
+		return true;
+	}
 };
 
 
 
-class Player : public Entity {
+class PlayerState : public EntityState {
 
 public:
 

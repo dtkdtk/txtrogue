@@ -1,6 +1,6 @@
 #pragma once
 
-enum class TileID : int {
+enum TileID : int {
 	NONE,
 	WALL,
 	DOOR,
@@ -8,21 +8,26 @@ enum class TileID : int {
 	STONEFLOOR
 };
 
-enum class NodeID : int {
+enum NodeCategory : unsigned char {
+	NONE,
+	PRIMARY_ACTION,
+};
+
+enum NodeID : int {
 	NONE,
 	ACTION,
 	ANIMATION
 };
 
-enum class AttrID : int {
+enum AttrID : int {
 	NONE
 };
 
-enum class PropID : int {
+enum PropID : int {
 	NONE
 };
 
 union NodeIDMeta {
-	unsigned char act_categ;
+	unsigned char category;
 	int id;
 };
