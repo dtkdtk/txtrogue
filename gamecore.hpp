@@ -25,13 +25,13 @@ using PropertyValue = uint64_t;
 /*
 	Relative Coordinates
 ```
-	      -3
-	      -2
-	      -
-  -3 -2 - A + +2 +3
-		  +
-		  +2
-		  +3
+             -3
+             -2
+              -
+      -3 -2 - A + +2 +3
+              +
+              +2
+              +3
 ```
 */
 using RelCoord = Coord<short>;
