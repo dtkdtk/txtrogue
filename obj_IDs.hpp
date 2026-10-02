@@ -1,33 +1,48 @@
 #pragma once
 
-enum TileID : int {
-	NONE,
-	WALL,
-	DOOR,
-	WATER,
-	STONEFLOOR
-};
+namespace TileID {
+	enum Enum : int {
+		NONE,
+		WALL,
+		DOOR,
+		WATER,
+		STONEFLOOR
+	};
+}
 
-enum NodeCategory : unsigned char {
-	NONE,
-	PRIMARY_ACTION,
-};
+namespace NodeCategory {
+	enum Enum : unsigned char {
+		NONE,
+		PRIMARY_ACTION
+	};
+}
 
-enum NodeID : int {
-	NONE,
-	ACTION,
-	ANIMATION
-};
+namespace NodeID {
+	enum Enum : int {
+		NONE,
+		ACTION,
+		ANIMATION
+	};
+}
 
-enum AttrID : int {
-	NONE
-};
+namespace AttrID {
+	enum AttrID : int {
+		NONE
+	};
+}
 
-enum PropID : int {
-	NONE
-};
+namespace PropID {
+	enum PropID : int {
+		NONE
+	};
+}
 
-union NodeIDMeta {
+union NodeKind {
 	unsigned char category;
 	int id;
 };
+inline int trimNodeCat(int id) {
+	NodeKind k{ id };
+	k.category = 0;
+	return k.id;
+}

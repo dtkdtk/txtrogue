@@ -44,7 +44,7 @@ struct NodeSource {
 	const NodeExecFn executor;
 
 	NodeSource(NodeExecFn e)
-		: executor{ e } {}
+		: executor(e) {}
 };
 
 
@@ -52,22 +52,23 @@ struct NodeSource {
 class NodeRef {
 
 private:
-	int _kind = 0;
+	NodeKind _kind = 0;
 
 public:
-	NodeRef(int kind)
-		: _kind{ kind } {}
+	NodeRef(int kind_)
+		: _kind(kind_) {}
 	NodeRef() = default;
 
-	int get_kind() const noexcept {
+	NodeKind get_kind() const noexcept {
 		return _kind;
 	}
 	NodeSource & get_source() const {
+		int id = trimNodeCat(_kind.id);
 		auto & knk = getKnownNodeKinds();
-		if (_kind <= 0 || _kind > knk.size()) {
-			throw std::runtime_error(std::format("Invalid node kind: {}", _kind));
+		if (id <= 0 || id > knk.size()) {
+			throw std::runtime_error(std::format("Invalid node kind: {}", id));
 		}
-		return knk[_kind - 1];
+		return knk[id - 1];
 	}
 	void execute(Tile & tile) const {
 		NodeSource & s = get_source();
@@ -111,6 +112,10 @@ public:
 	std::span<NodeRef> getCategoryNodes(NodeCategory cat) const {
 		//1. calculate nodes count (to get span size)
 		//2. allocate span & fill it with nodes
+		size_t count = 0;
+		for (const auto & n : nodes) {
+			//
+		}
 	}
 };
 

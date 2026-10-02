@@ -3,9 +3,9 @@
 void res_init_tiles() {
 	auto & tt = getTileTemplates();
 	Tile tiles[] = {
-		Tile(Cell(L' '), {}, {}, {{}}), //NONE
-		Tile(Cell(L'8'), {}, {}, {{}}), //WALL
-		Tile(Cell(L'#'), {}, {}, {{}})
+		Tile(Cell(L' '), 0, {}, {}, {{}}), //NONE
+		Tile(Cell(L'8'), 0, {}, {}, {{}}), //WALL
+		Tile(Cell(L'#'), 0, {}, {}, {{}})
 	};
 	tt.reserve(sizeof(tiles) / sizeof(Tile));
 	for (const Tile & t : tiles)
