@@ -132,6 +132,7 @@
     <ClCompile Include="u_dynspan.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="obj_IDs.hpp" />
     <ClInclude Include="res_init_nodes.hh" />
     <ClInclude Include="res_init_tiles.hh" />
     <ClInclude Include="u_basetypes.hpp" />
