@@ -208,7 +208,8 @@ class EntityState : public Tile {
 
 public:
 	int getHealth() const {
-		//TODO, get from prop
+		//TODO: get from prop
+		return 1;
 	}
 	bool isAlive() const {
 		//TODO
