@@ -42,7 +42,8 @@ union NodeKind {
 	int id;
 };
 inline int trimNodeCat(int id) {
-	NodeKind k{ id };
+	NodeKind k{};
+	k.id = id;
 	k.category = 0;
 	return k.id;
 }

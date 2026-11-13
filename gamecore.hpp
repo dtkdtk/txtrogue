@@ -52,7 +52,7 @@ struct NodeSource {
 class NodeRef {
 
 private:
-	NodeKind _kind = 0;
+	NodeKind _kind = {.id = 0};
 
 public:
 	NodeRef(int kind_)
@@ -109,13 +109,23 @@ public:
 		return true;
 	}
 
-	std::span<NodeRef> getCategoryNodes(NodeCategory cat) const {
-		//1. calculate nodes count (to get span size)
-		//2. allocate span & fill it with nodes
+	std::vector<NodeRef> getCategoryNodes(unsigned char cat) const {
+		//1. calculate nodes count (to get vector size)
+		//2. allocate vector & fill it with nodes
 		size_t count = 0;
 		for (const auto & n : nodes) {
-			//
+			NodeKind k = n.get_kind();
+			if (k.category == cat) count++;
 		}
+		if (count == 0) return {};
+
+		std::vector<NodeRef> vct{};
+		vct.reserve(count);
+		for (const auto & n : nodes) {
+			NodeKind k = n.get_kind();
+			if (k.category == cat) vct.push_back(n);
+		}
+		return vct;
 	}
 };
 
