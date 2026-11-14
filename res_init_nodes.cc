@@ -4,9 +4,14 @@ void noop(Tile & tile) {}
 
 void res_init_nodes() {
 	auto & m = getKnownNodeSources();
-	unsigned int idc = 0; //unique ID counter
 	m.insert({
-		idc++,
+		NodeID::NONE,
 		NodeSource(noop)
+	});
+	m.insert({
+		NodeID::DOOR_ACTION,
+		NodeSource([](Tile & tile) {
+			
+		})
 	});
 }

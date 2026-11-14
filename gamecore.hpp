@@ -46,8 +46,9 @@ inline std::vector<Tile> & getTileTemplates();
 	To get NodeSource from NodeRef, you should use partial (clean) ID.
 */
 
-static constexpr int _NodeCategoryShift = (sizeof(int) - sizeof(unsigned char)) * 8;
-static constexpr int _NodeCategoryMask = 0xff << _NodeCategoryShift;
+static constexpr unsigned int _NodeCategoryShift =
+	(sizeof(int) - sizeof(unsigned char)) * 8;
+static constexpr unsigned int _NodeCategoryMask = 0xff << _NodeCategoryShift;
 
 class NodeDescribedId {
 
@@ -114,6 +115,9 @@ public:
 		NodeSource & s = get_source();
 		s.executor(tile);
 	}
+	bool is_none() const noexcept {
+		return _d_id.id() == NodeID::NONE;
+	}
 };
 
 
@@ -130,12 +134,14 @@ public:
 	MapSpan<int, PropertyValue> props{};
 
 	Tile() = default;
-	Tile(Cell cell_,
+	Tile(
+		Cell cell_,
 		short map_layer_,
 		std::initializer_list<NodeRef> nodes_,
 		std::initializer_list<int> attrs_,
 		std::initializer_list<KvProperty> props_
-	) : cell(cell_), map_layer(map_layer_), nodes(nodes_), attrs(attrs_), props(props_) {}
+	) : cell(cell_), map_layer(map_layer_),
+		  nodes(nodes_), attrs(attrs_), props(props_) {}
 
 	/* returns `false` if reached non-void empty or the map border */
 	bool try_move(RelCoord dest) {
@@ -166,6 +172,16 @@ public:
 			if (k.category() == cat) vct.push_back(n);
 		}
 		return vct;
+	}
+
+	/* may return NONE node if not found */
+	NodeRef get_id_node(unsigned int id) const {
+		if (NodeDescribedId(id).id() == NodeID::NONE)
+			throw std::runtime_error("Cannot get node with NONE id");
+		for (const auto & n : nodes) {
+			if (n.get_id().id() == id) return n;
+		}
+		return NodeRef(NodeDescribedId(NodeID::NONE));
 	}
 };
 
@@ -285,3 +301,20 @@ class PlayerState : public EntityState {
 public:
 
 };
+
+
+
+void requireTileProperty(Tile & t, int id) {
+	if (!t.props.contains(id))
+		throw std::runtime_error(std::format(
+			"Missing prop {} on tile",
+			id
+		));
+}
+void requireTileNode(Tile & t, unsigned int id) {
+	if (t.get_id_node(id).is_none())
+		throw std::runtime_error(std::format(
+			"Missing node {} on tile",
+			id
+		));
+}

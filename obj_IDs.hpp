@@ -18,10 +18,9 @@ namespace NodeCategory {
 }
 
 namespace NodeID {
-	enum Enum : int {
+	enum Enum : unsigned int {
 		NONE,
-		ACTION,
-		ANIMATION
+		DOOR_ACTION
 	};
 }
 
