@@ -3,9 +3,11 @@
 void res_init_tiles() {
 	auto & tt = getTileTemplates();
 	Tile tiles[] = {
-		Tile(Cell(L' '), 0, {}, {}, {{}}), //NONE
-		Tile(Cell(L'8'), 0, {}, {}, {{}}), //WALL
-		Tile(Cell(L'#'), 0, {}, {}, {{}})
+		Tile(Cell(L' '), WALLS, {}, {}, {{}}), //NONE
+		Tile(Cell(L'8'), WALLS, {}, {}, {{}}), //WALL
+		Tile(Cell(L'#'), WALLS, {}, {}, {{}}), //DOOR
+		Tile(Cell(L'_'), FLOOR, {}, {}, {{}}), //WATER
+		Tile(Cell(L' '), FLOOR, {}, {}, {{}}) //STONEFLOOR
 	};
 	tt.reserve(sizeof(tiles) / sizeof(Tile));
 	for (const Tile & t : tiles)

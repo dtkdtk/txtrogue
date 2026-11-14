@@ -36,14 +36,3 @@ namespace PropID {
 		NONE
 	};
 }
-
-union NodeKind {
-	unsigned char category;
-	int id;
-};
-inline int trimNodeCat(int id) {
-	NodeKind k{};
-	k.id = id;
-	k.category = 0;
-	return k.id;
-}

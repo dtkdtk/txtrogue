@@ -36,8 +36,48 @@ using PropertyValue = uint64_t;
 */
 using RelCoord = Coord<short>;
 
-inline std::vector<NodeSource> & getKnownNodeKinds();
+inline std::map<unsigned int, NodeSource> & getKnownNodeSources();
 inline std::vector<Tile> & getTileTemplates();
+
+
+/*
+	Described node IDs are used only inside the Tile
+	 to bind the Node to some action category.
+	To get NodeSource from NodeRef, you should use partial (clean) ID.
+*/
+
+static constexpr int _NodeCategoryShift = (sizeof(int) - sizeof(unsigned char)) * 8;
+static constexpr int _NodeCategoryMask = 0xff << _NodeCategoryShift;
+
+class NodeDescribedId {
+
+public:
+	unsigned int full_id;
+
+	NodeDescribedId(unsigned int full_id_) : full_id{ full_id_ } {}
+	NodeDescribedId(unsigned char category_, unsigned int partial_id_) {
+		if ((partial_id_ & _NodeCategoryMask) != 0)
+			throw std::runtime_error(
+				"Got invalid partial_id_ in NodeKind; did you confuse it with full_id ?"
+			);
+		full_id = partial_id_;
+		set_category(category_);
+	}
+
+	unsigned char category() const noexcept {
+		return static_cast<unsigned char>(
+			(full_id & _NodeCategoryMask) >> _NodeCategoryShift
+			);
+	}
+	void set_category(unsigned char cat) noexcept {
+		unsigned int cat_w = static_cast<unsigned int>(cat);
+		cat_w = cat_w << _NodeCategoryShift;
+		full_id |= cat_w;
+	}
+	unsigned int id() const noexcept {
+		return full_id & ~_NodeCategoryMask;
+	}
+};
 
 
 struct NodeSource {
@@ -48,27 +88,27 @@ struct NodeSource {
 };
 
 
-
 class NodeRef {
 
 private:
-	NodeKind _kind = {.id = 0};
+	NodeDescribedId _d_id;
 
 public:
-	NodeRef(int kind_)
-		: _kind(kind_) {}
-	NodeRef() = default;
+	NodeRef(NodeDescribedId d_id_)
+		: _d_id(d_id_) {}
+	NodeRef()
+		: _d_id(0) {}
 
-	NodeKind get_kind() const noexcept {
-		return _kind;
+	NodeDescribedId get_id() const noexcept {
+		return _d_id;
 	}
 	NodeSource & get_source() const {
-		int id = trimNodeCat(_kind.id);
-		auto & knk = getKnownNodeKinds();
-		if (id <= 0 || id > knk.size()) {
-			throw std::runtime_error(std::format("Invalid node kind: {}", id));
+		unsigned int id = _d_id.id();
+		auto & kns = getKnownNodeSources();
+		if (id < 0 || id >= kns.size()) {
+			throw std::runtime_error(std::format("Invalid node id: {}", id));
 		}
-		return knk[id - 1];
+		return kns.at(id);
 	}
 	void execute(Tile & tile) const {
 		NodeSource & s = get_source();
@@ -84,46 +124,46 @@ public:
 	using KvProperty = MapSpan<int, PropertyValue>::Entry;
 
 	Cell cell{};
-	short mapLayer; //needed to see other layer tiles
+	short map_layer; //needed to see other layer tiles
 	DynSpan<NodeRef> nodes{};
 	DynSpan<int> attrs{};
 	MapSpan<int, PropertyValue> props{};
 
 	Tile() = default;
 	Tile(Cell cell_,
-		short mapLayer_,
+		short map_layer_,
 		std::initializer_list<NodeRef> nodes_,
 		std::initializer_list<int> attrs_,
 		std::initializer_list<KvProperty> props_
-	) : cell(cell_), mapLayer(mapLayer_), nodes(nodes_), attrs(attrs_), props(props_) {}
+	) : cell(cell_), map_layer(map_layer_), nodes(nodes_), attrs(attrs_), props(props_) {}
 
 	/* returns `false` if reached non-void empty or the map border */
-	bool tryMove(RelCoord dest) {
+	bool try_move(RelCoord dest) {
 		//TODO
 		return true;
 	}
 
 	/* returns `false` only if reached the map border */
-	bool forceMove(RelCoord dest) {
+	bool force_move(RelCoord dest) {
 		//TODO
 		return true;
 	}
 
-	std::vector<NodeRef> getCategoryNodes(unsigned char cat) const {
+	std::vector<NodeRef> get_category_nodes(unsigned char cat) const {
 		//1. calculate nodes count (to get vector size)
 		//2. allocate vector & fill it with nodes
 		size_t count = 0;
 		for (const auto & n : nodes) {
-			NodeKind k = n.get_kind();
-			if (k.category == cat) count++;
+			NodeDescribedId k = n.get_id();
+			if (k.category() == cat) count++;
 		}
 		if (count == 0) return {};
 
 		std::vector<NodeRef> vct{};
 		vct.reserve(count);
 		for (const auto & n : nodes) {
-			NodeKind k = n.get_kind();
-			if (k.category == cat) vct.push_back(n);
+			NodeDescribedId k = n.get_id();
+			if (k.category() == cat) vct.push_back(n);
 		}
 		return vct;
 	}
@@ -191,8 +231,8 @@ public:
 
 
 
-inline std::vector<NodeSource> & getKnownNodeKinds() {
-	static std::vector<NodeSource> _v{};
+inline std::map<unsigned int, NodeSource> & getKnownNodeSources() {
+	static std::map<unsigned int, NodeSource> _v{};
 	return _v;
 }
 inline std::vector<Tile> & getTileTemplates() {
@@ -217,22 +257,22 @@ inline void setMapLayer(short layer, std::unique_ptr<GameMap> map) {
 class EntityState : public Tile {
 
 public:
-	int getHealth() const {
+	int get_health() const {
 		//TODO: get from prop
 		return 1;
 	}
-	bool isAlive() const {
+	bool is_alive() const {
 		//TODO
 		return true;
 	}
-	bool selfDamageWall(RelCoord XY) { //layer 0
+	bool self_damage_wall(RelCoord XY) { //layer 0
 		//TODO, + check range & check ability
 		return true;
 	}
-	bool selfDamageObject(RelCoord XY) {
-		return selfDamageMapLayer(XY, MapLayer::OBJECTS);
+	bool self_damage_object(RelCoord XY) {
+		return self_damage_map_layer(XY, MapLayer::OBJECTS);
 	}
-	bool selfDamageMapLayer(RelCoord XY, int layer) {
+	bool self_damage_map_layer(RelCoord XY, int layer) {
 		//TODO, + check range & check ability
 		return true;
 	}
