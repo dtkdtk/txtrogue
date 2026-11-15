@@ -59,5 +59,8 @@
     <ClInclude Include="res_game_map.hh">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="res_shared.hpp">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

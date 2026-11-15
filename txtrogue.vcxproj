@@ -137,6 +137,7 @@
     <ClInclude Include="res_game_map.hh" />
     <ClInclude Include="res_init_nodes.hh" />
     <ClInclude Include="res_init_tiles.hh" />
+    <ClInclude Include="res_shared.hpp" />
     <ClInclude Include="u_basetypes.hpp" />
     <ClInclude Include="u_grid.hpp" />
     <ClInclude Include="u_inputevent.hpp" />
