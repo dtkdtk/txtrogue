@@ -1,5 +1,5 @@
 #pragma once
 #include "gamecore.hpp"
-#include "obj_IDs.hpp"
+#include "res_shared.hpp"
 
 void res_init_tiles();

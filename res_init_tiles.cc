@@ -7,12 +7,10 @@ void res_init_tiles() {
 	Tile tiles[] = {
 		// cell map_layer nodes attrs props
 		Tile(Cell(L' '), WALLS, {}, {}, {}), //NONE
-		Tile(Cell(L'8'), WALLS, {}, {}, {}), //WALL
-		Tile(Cell(L'#'), WALLS, {
+		Tile(Cell(L'8'), WALLS, {}, { AttrID::SOLID }, {}), //WALL
+		Tile(Cell(DoorStateIcons[0]), WALLS,{
 			NODE(PRIMARY_ACTION, DOOR_ACTION)
-		}, {}, {
-			{}
-		}), //DOOR
+		}, { AttrID::SOLID }, {{}}), //DOOR
 		Tile(Cell(L'_'), FLOOR, {}, {}, {}), //WATER
 		Tile(Cell(L' '), FLOOR, {}, {}, {}) //STONEFLOOR
 	};

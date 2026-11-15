@@ -1,7 +1,6 @@
 #pragma once
 #include <span>
 #include <algorithm>
-#include <cstddef>
 #include <memory>
 #include <utility>
 #include <initializer_list>
@@ -105,6 +104,76 @@ public:
         return true;
     }
 
+    // removes element & shifts array; no memory free
+    bool erase_at(size_type i) {
+        if (i >= _size) return false;
+
+        for (size_type j = i; j + 1 < _size; ++j) {
+            _data[j] = std::move(_data[j + 1]);
+        }
+
+        --_size;
+        if constexpr (!std::is_trivially_destructible_v<T>) {
+            std::destroy_at(_data.get() + _size);
+        }
+        return true;
+    }
+
+    // tries to remove first element entry
+    bool erase(const T & value) {
+        for (size_type i = 0; i < _size; ++i) {
+            if (_data[i] == value)
+                return erase_at(i);
+        }
+        return false;
+    }
+
+    // removes all matching elements & returns count
+    size_type erase_all(const T & value) {
+        size_type w = 0; // index
+        for (size_type r = 0; r < _size; ++r) {
+            if (!(_data[r] == value)) {
+                if (w != r) _data[w] = std::move(_data[r]);
+                ++w;
+            }
+        }
+        const size_type removed = _size - w;
+        if constexpr (!std::is_trivially_destructible_v<T>) {
+            for (size_type i = w; i < _size; ++i) {
+                std::destroy_at(_data.get() + i);
+            }
+        }
+        _size = w;
+        return removed;
+    }
+
+    size_type find_index(const T & value) const {
+        for (size_type i = 0; i < _size; ++i) {
+            if (_data[i] == value) return i;
+        }
+        return -1;
+    }
+
+    // replaces first value entry
+    bool replace(const T & old_value, const T & new_value) {
+        const size_type i = find_index(old_value);
+        if (i == -1) return false;
+        _data[i] = new_value;
+        return true;
+    }
+
+    // replaces all value entries & returns replaced count
+    size_type replace_all(const T & old_value, const T & new_value) {
+        size_type count = 0;
+        for (size_type i = 0; i < _size; ++i) {
+            if (_data[i] == old_value) {
+                _data[i] = new_value;
+                ++count;
+            }
+        }
+        return count;
+    }
+
     void clear() noexcept { _size = 0; }
 
 private:
@@ -113,7 +182,6 @@ private:
         const size_type new_size = _size + 1;
         auto new_data = std::make_unique<T[]>(new_size);
 
-        // перемещаем/копируем старые
         for (size_type i = 0; i < _size; ++i) {
             new_data[i] = std::move_if_noexcept(_data[i]);
         }

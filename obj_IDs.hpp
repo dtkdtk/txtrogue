@@ -26,7 +26,9 @@ namespace NodeID {
 
 namespace AttrID {
 	enum AttrID : int {
-		NONE
+		NONE,
+		SOLID,
+		DOOR_OPEN,
 	};
 }
 
