@@ -128,7 +128,10 @@ public:
 	using KvProperty = MapSpan<int, PropertyValue>::Entry;
 
 	Cell cell{};
-	short map_layer; //needed to see other layer tiles
+	//short map_layer; /* idk, maybe this field will be
+		used in future, because tiles usually have
+		fixed map layer (and we can say, where to
+		place this tile, on which layer) */
 	DynSpan<NodeRef> nodes{};
 	DynSpan<int> attrs{};
 	MapSpan<int, PropertyValue> props{};
@@ -136,24 +139,12 @@ public:
 	Tile() = default;
 	Tile(
 		Cell cell_,
-		short map_layer_,
+		//short map_layer_,
 		std::initializer_list<NodeRef> nodes_,
 		std::initializer_list<int> attrs_,
 		std::initializer_list<KvProperty> props_
-	) : cell(cell_), map_layer(map_layer_),
+	) : cell(cell_),
 		  nodes(nodes_), attrs(attrs_), props(props_) {}
-
-	/* returns `false` if reached non-void empty or the map border */
-	bool try_move(RelCoord dest) {
-		//TODO
-		return true;
-	}
-
-	/* returns `false` only if reached the map border */
-	bool force_move(RelCoord dest) {
-		//TODO
-		return true;
-	}
 
 	std::vector<NodeRef> get_category_nodes(unsigned char cat) const {
 		//1. calculate nodes count (to get vector size)
@@ -192,6 +183,10 @@ enum MapLayer : short {
 	WALLS = 0,
 	OBJECTS = 1
 };
+
+inline Tile none_tile() {
+	return getTileTemplates()[0];
+}
 
 
 
@@ -242,6 +237,35 @@ public:
 		}
 		return result;
 	}
+
+	/* returns `false` if reached non-void empty or the map border */
+        bool try_move(Coord src, RelCoord shift) {
+                //TODO return falce if not none
+		//maybe "EMPTY" attribute
+                if (src.x + 1 > width()
+                        || src.y + 1 > height()) return false;
+                Coord dest = src;
+                dest.x += shift.x;
+                dest.y += shift.y;
+                if (this.at(dest).attrs.has_value(AttrID::SOLID))
+                        return false;
+                //Warning: previous value is DISCARDED! TODO
+                this.at(dest) = this.at(src);
+                this.at(src) = none_tile;
+                return true;
+        }
+
+        /* returns `false` only if reached the map border */
+        bool force_move(Coord src, RelCoord shift) {
+                if (src.x + 1 > width()
+                        || src.y + 1 > height()) return false;
+                Coord dest = src;
+                dest.x += shift.x;
+                dest.y += shift.y;
+                this.at(dest) = this.at(src);
+                this.at(src) = none_tile;
+                return true;
+        }
 };
 
 
@@ -257,14 +281,13 @@ inline std::vector<Tile> & getTileTemplates() {
 }
 
 static inline std::map<short, std::unique_ptr<GameMap>> _GameMapLayers{};
-//nullable
-inline GameMap * getGameMap(short layer) {
-	if (!_GameMapLayers.contains(layer))
-		return nullptr;
+inline GameMap & getGameMap(short layer) {
+	assertValidMapLayer(layer);
 	return _GameMapLayers[layer].get();
 
 }
 inline void setMapLayer(short layer, std::unique_ptr<GameMap> map) {
+	assertValidMapLayer(layer);
 	_GameMapLayers[layer] = std::move(map);
 }
 
@@ -273,13 +296,13 @@ inline void setMapLayer(short layer, std::unique_ptr<GameMap> map) {
 class EntityState : public Tile {
 
 public:
+
 	int get_health() const {
-		//TODO: get from prop
-		return 1;
+		requireTile(this, PropID::HEALTH);
+		return props.at(PropID::HEALTH);
 	}
 	bool is_alive() const {
-		//TODO
-		return true;
+		return get_health() > 0;
 	}
 	bool self_damage_wall(RelCoord XY) { //layer 0
 		//TODO, + check range & check ability
@@ -300,21 +323,55 @@ class PlayerState : public EntityState {
 
 public:
 
+	Coord coord{};
+
+	void try_move_up() {
+		RelCoord sh{ 0, -1 };
+		GameMap & m = getGameMap(MapLayer::OBJECTS);
+		m.try_move(coord, sh);
+	}
+	void try_move_down() {
+                RelCoord sh{ 0, 1 };
+                GameMap & m = getGameMap(MapLayer::OBJECTS);
+                m.try_move(coord, sh);
+        }
+	void try_move_left() {
+                RelCoord sh{ -1, 0 };
+                GameMap & m = getGameMap(MapLayer::OBJECTS);
+                m.try_move(coord, sh);
+        }
+	void try_move_right() {
+                RelCoord sh{ 1, 0 };
+                GameMap & m = getGameMap(MapLayer::OBJECTS);
+                m.try_move(coord, sh);
+        }
 };
 
 
 
-void requireTileProperty(Tile & t, int id) {
+void requireTileProperty(const Tile & t, int id) {
 	if (!t.props.contains(id))
 		throw std::runtime_error(std::format(
 			"Missing prop {} on tile",
 			id
 		));
 }
-void requireTileNode(Tile & t, unsigned int id) {
+void requireTileNode(const Tile & t, unsigned int id) {
 	if (t.get_id_node(id).is_none())
 		throw std::runtime_error(std::format(
 			"Missing node {} on tile",
 			id
 		));
+}
+//TODO: replace `short` type to enum
+void assertValidMapLayer(short layer) {
+	if (layer != MapLayer::FLOOR
+		&& layer != MapLayer::WALLS
+		&& layer != MapLayer::OBJECTS
+	) {
+		throw std::runtime_error(std::format(
+			"Invalid game map layer: {}",
+			layer
+		));
+	}
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace TileID {
+/*namespace TileID {
 	enum Enum : int {
 		NONE,
 		WALL,
@@ -8,7 +8,7 @@ namespace TileID {
 		WATER,
 		STONEFLOOR
 	};
-}
+}*/
 
 namespace NodeCategory {
 	enum Enum : unsigned char {
@@ -34,6 +34,7 @@ namespace AttrID {
 
 namespace PropID {
 	enum PropID : int {
-		NONE
+		NONE,
+		HEALTH
 	};
 }
