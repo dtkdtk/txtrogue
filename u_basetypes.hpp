@@ -17,6 +17,8 @@ struct Coord {
     friend bool operator==(const Coord &, const Coord &) = default;
 };
 
+using CoordU32 = Coord<unsigned int>;
+
 
 
 struct Key8 {

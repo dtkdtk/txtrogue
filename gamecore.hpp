@@ -39,6 +39,10 @@ using RelCoord = Coord<short>;
 inline std::map<unsigned int, NodeSource> & getKnownNodeSources();
 inline std::vector<Tile> & getTileTemplates();
 
+void requireTileProperty(const Tile & t, int id);
+void requireTileNode(const Tile & t, unsigned int id);
+void assertValidMapLayer(short layer);
+
 
 /*
 	Described node IDs are used only inside the Tile
@@ -128,7 +132,7 @@ public:
 	using KvProperty = MapSpan<int, PropertyValue>::Entry;
 
 	Cell cell{};
-	//short map_layer; /* idk, maybe this field will be
+	/*short map_layer; /* idk, maybe this field will be
 		used in future, because tiles usually have
 		fixed map layer (and we can say, where to
 		place this tile, on which layer) */
@@ -239,31 +243,31 @@ public:
 	}
 
 	/* returns `false` if reached non-void empty or the map border */
-        bool try_move(Coord src, RelCoord shift) {
+        bool try_move(CoordU32 src, RelCoord shift) {
                 //TODO return falce if not none
 		//maybe "EMPTY" attribute
                 if (src.x + 1 > width()
                         || src.y + 1 > height()) return false;
-                Coord dest = src;
+                CoordU32 dest = src;
                 dest.x += shift.x;
                 dest.y += shift.y;
-                if (this.at(dest).attrs.has_value(AttrID::SOLID))
+                if (tile_at(dest).attrs.has_value(AttrID::SOLID))
                         return false;
                 //Warning: previous value is DISCARDED! TODO
-                this.at(dest) = this.at(src);
-                this.at(src) = none_tile;
+                tile_at(dest) = tile_at(src);
+                tile_at(src) = none_tile;
                 return true;
         }
 
         /* returns `false` only if reached the map border */
-        bool force_move(Coord src, RelCoord shift) {
+        bool force_move(CoordU32 src, RelCoord shift) {
                 if (src.x + 1 > width()
                         || src.y + 1 > height()) return false;
-                Coord dest = src;
+                CoordU32 dest = src;
                 dest.x += shift.x;
                 dest.y += shift.y;
-                this.at(dest) = this.at(src);
-                this.at(src) = none_tile;
+                tile_at(dest) = tile_at(src);
+                tile_at(src) = none_tile;
                 return true;
         }
 };
@@ -283,7 +287,7 @@ inline std::vector<Tile> & getTileTemplates() {
 static inline std::map<short, std::unique_ptr<GameMap>> _GameMapLayers{};
 inline GameMap & getGameMap(short layer) {
 	assertValidMapLayer(layer);
-	return _GameMapLayers[layer].get();
+	return *_GameMapLayers[layer].get();
 
 }
 inline void setMapLayer(short layer, std::unique_ptr<GameMap> map) {
@@ -298,7 +302,7 @@ class EntityState : public Tile {
 public:
 
 	int get_health() const {
-		requireTile(this, PropID::HEALTH);
+		requireTileProperty(this, PropID::HEALTH);
 		return props.at(PropID::HEALTH);
 	}
 	bool is_alive() const {
@@ -323,7 +327,7 @@ class PlayerState : public EntityState {
 
 public:
 
-	Coord coord{};
+	CoordU32 coord{};
 
 	void try_move_up() {
 		RelCoord sh{ 0, -1 };
